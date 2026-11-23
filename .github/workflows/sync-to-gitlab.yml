@@ -1,0 +1,28 @@
+name: Sync to GitLab
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  sync-to-gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push all branches to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          # Eliminar referencia HEAD para evitar colisiones
+          git remote set-head origin -d 2>/dev/null || true
+
+          # Configurar remoto de GitLab con el token
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/SaraChiriboga/tarea-ci-cd-metodologias.git"
+
+          # Sincronizar todas las ramas desde GitHub hacia GitLab
+          git push --force --prune gitlab "refs/remotes/origin/*:refs/heads/*"
