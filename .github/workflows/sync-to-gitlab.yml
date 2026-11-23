@@ -1,0 +1,28 @@
+name: Sync to GitLab
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  sync-to-gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push all branches to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          # Asegurar que todas las ramas locales coincidan con las de GitHub
+          git fetch origin "+refs/heads/*:refs/heads/*"
+          
+          # Configurar el remoto de GitLab con el token de acceso
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/SaraChiriboga/tarea-ci-cd-metodologias.git"
+          
+          # Enviar todas las ramas a GitLab de forma forzada para mantener la sincronización exacta
+          git push --force gitlab "refs/heads/*:refs/heads/*"
