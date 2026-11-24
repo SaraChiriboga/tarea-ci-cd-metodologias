@@ -1,0 +1,44 @@
+{
+  "info": {
+    "name": "To-Do List API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "taskId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Crear tarea",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Estudiar CI/CD\",\n  \"description\": \"Repasar GitLab CI\",\n  \"completed\": false\n}" },
+        "url": "{{baseUrl}}/api/tasks"
+      }
+    },
+    {
+      "name": "Crear tarea inválida (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"\"\n}" },
+        "url": "{{baseUrl}}/api/tasks"
+      }
+    },
+    { "name": "Listar tareas", "request": { "method": "GET", "url": "{{baseUrl}}/api/tasks" } },
+    { "name": "Obtener tarea por ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/tasks/{{taskId}}" } },
+    { "name": "Obtener tarea inexistente (404)", "request": { "method": "GET", "url": "{{baseUrl}}/api/tasks/99999" } },
+    {
+      "name": "Actualizar tarea",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Estudiar CI/CD (editada)\",\n  \"description\": \"Ya la completé\",\n  \"completed\": true\n}" },
+        "url": "{{baseUrl}}/api/tasks/{{taskId}}"
+      }
+    },
+    { "name": "Eliminar tarea", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/tasks/{{taskId}}" } },
+    { "name": "Health check", "request": { "method": "GET", "url": "{{baseUrl}}/actuator/health" } }
+  ]
+}
