@@ -1,0 +1,40 @@
+image: gradle:jdk17
+
+stages:
+  - build
+  - test
+  - quality
+  - packing
+  - deploy
+  - verify
+
+build_job:
+  stage: build
+  script:
+    - chmod +x gradlew
+    - ./gradlew compileJava
+
+test_job:
+  stage: test
+  script:
+    - ./gradlew test
+  artifacts:
+    when: always
+    reports:
+      junit: build/test-results/test/**/TEST-*.xml
+
+quality_job:
+  stage: quality
+  script:
+    - ./gradlew jacocoTestReport
+  allow_failure: true
+
+packing_job:
+  stage: packing
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - ./gradlew bootJar
+  artifacts:
+    paths:
+      - build/libs/*.jar
