@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.10'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+	id 'checkstyle'
 }
 
 group = 'com.udla'
@@ -32,10 +34,71 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// Siempre generar el reporte de cobertura después de las pruebas
+	finalizedBy tasks.named('jacocoTestReport')
+}
+
+// ==========================================================
+// Calidad de código (Persona 4): JaCoCo + Checkstyle
+// ==========================================================
+
+// Clases que no aportan lógica a probar (arranque de Spring Boot)
+def jacocoExcludes = [
+	'com/udla/todolist/ToDoListApiApplication*'
+]
+
+jacoco {
+	toolVersion = '0.8.13'
+}
+
+jacocoTestReport {
+	dependsOn tasks.named('test')
+	reports {
+		xml.required = true   // lo usa GitLab para mostrar cobertura
+		html.required = true  // reporte navegable: build/reports/jacoco/test/html/index.html
+		csv.required = false
+	}
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, exclude: jacocoExcludes)
+	}))
+}
+
+jacocoTestCoverageVerification {
+	dependsOn tasks.named('test')
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, exclude: jacocoExcludes)
+	}))
+	violationRules {
+		rule {
+			// Cobertura mínima de líneas exigida: 70 %
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.70
+			}
+		}
+	}
+}
+
+checkstyle {
+	toolVersion = '10.21.4'
+	configFile = file('config/checkstyle/checkstyle.xml')
+	ignoreFailures = false
+	maxWarnings = 0
+}
+
+// `./gradlew check` ejecuta pruebas + Checkstyle + verificación de cobertura mínima
+tasks.named('check') {
+	dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 bootJar {
