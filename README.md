@@ -90,3 +90,20 @@ cd tarea-ci-cd
    - El Líder Técnico (Persona 1) revisa y aprueba el merge.
 4. **Despliegue a Producción:**
    - Cuando `develop` esté probado y estable, se hace merge a `main`, disparando el despliegue automático a EC2.
+
+---
+
+## 🧪 Pruebas y Calidad de Código (Persona 4)
+
+| Comando | Qué hace |
+|---|---|
+| `./gradlew test` | Ejecuta las pruebas (JUnit 5 + Mockito + MockMvc + DataJpaTest) y genera el reporte JaCoCo |
+| `./gradlew check` | Pruebas + Checkstyle + verificación de cobertura mínima (**70 % de líneas**) |
+| `./gradlew jacocoTestReport` | Solo regenera el reporte de cobertura |
+
+- Las pruebas usan **H2 en memoria**, no necesitan BD externa.
+- Reporte de cobertura HTML: `build/reports/jacoco/test/html/index.html` (XML para GitLab: `build/reports/jacoco/test/jacocoTestReport.xml`).
+- Reportes JUnit (para `artifacts: reports: junit`): `build/test-results/test/*.xml`.
+- Reporte de Checkstyle: `build/reports/checkstyle/main.html`. Reglas en `config/checkstyle/checkstyle.xml`.
+
+**Pruebas incluidas:** `TaskServiceImplTest` (9), `TaskControllerTest` (13), `TaskRepositoryTest` (2), `ToDoListApiApplicationTests` (1).
