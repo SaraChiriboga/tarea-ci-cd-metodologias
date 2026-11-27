@@ -48,3 +48,26 @@ packing_job:
   artifacts:
     paths:
       - build/libs/*.jar
+
+deploy_job:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"'
+  script:
+    - apt-get update -qq && apt-get install -y openssh-client
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - cp $AWS_KEY ~/.ssh/id_rsa
+    - chmod 400 ~/.ssh/id_rsa
+    - ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+    - mv build/libs/*.jar app.jar
+    - scp -i ~/.ssh/id_rsa app.jar $EC2_USER@$EC2_HOST:/home/ubuntu/to-do-list-api/
+    - ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST "sudo systemctl restart todo-list-api"
+
+verify_job:
+  stage: verify
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"'
+  script:
+    - apt-get update -qq && apt-get install -y curl
+    - sleep 10
+    - curl -f http://$EC2_HOST:8080/actuator/health || exit 1
